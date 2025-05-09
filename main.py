@@ -71,7 +71,7 @@ with mp_face_detection.FaceDetection(
             cv2.putText(frame, tracked_faces_text, (10,30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,0,0), 2 )
 
             #Face Recognition part:
-            if frame_count % 5 == 0: # every 30 frames run face recognition
+            if frame_count % 5 == 0: # every 5 frames run face recognition
                 tracked_faces_for_recognition = face_tracker.get_all_tracked_faces_data()
                 for face_data in tracked_faces_for_recognition:
                     face_id = face_data["id"]
