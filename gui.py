@@ -168,7 +168,7 @@ class AppGui(QWidget):
             text += f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
             text += "\n------------------ Recognized students: ------------------\n"
             for idx, (name, group) in enumerate(self.students, start=1):
-                text += f"{idx}. {name} ({group})\n"
+                text += f"{idx}. {name} {'' if group == self.group else f'({group})'}"
             from PyQt5.QtGui import QTextDocument
             doc = QTextDocument()
             doc.setPlainText(text)
