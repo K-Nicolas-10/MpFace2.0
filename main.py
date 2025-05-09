@@ -112,7 +112,7 @@ with mp_face_detection.FaceDetection(
                                                 session.add(embed)
                                                 session.commit()
                                                 embedded_db[student.name].append(live_embedding)
-                                                face_tracker.update_face_name_by_id(face_id, res["student"])
+                                                face_tracker.update_face_name_by_id(face_id, res["student"].name)
                                                 app_gui.add_student(student.name)
 
 
