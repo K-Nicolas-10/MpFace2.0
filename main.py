@@ -15,8 +15,11 @@ from Recognition import compare_embeddings
 from db import Session, Student, Embed, get_student_by_id
 
 from logger import setup_logger
+import logging
 
 setup_logger()
+
+logger = logging.getLogger(__name__)
 
 embedded_db = {}
 
