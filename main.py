@@ -4,6 +4,9 @@ import mediapipe as mp
 import Tracking
 import Recognition
 from pathlib import Path
+from gui import AppGui
+from PyQt5.QtWidgets import QApplication
+import sys
 
 from Recognition import compare_embeddings
 
@@ -37,6 +40,11 @@ frame_skip = 2 # Process every (frame_skip + 1)-th frame
 face_tracker = Tracking.FaceTracker()
 #initializing Recognition
 face_recognition = Recognition
+
+# initializing gui
+app = QApplication(sys.argv)
+app_gui = AppGui()
+app_gui.show()
 
 with mp_face_detection.FaceDetection(
                                     model_selection=1,
@@ -80,11 +88,12 @@ with mp_face_detection.FaceDetection(
 
 
             face_tracker.draw_annotations(frame)
-            cv2.imshow("Face Detect", frame)
+            new_frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            app_gui.update_frame(new_frame_rgb)
 
         frame_count += 1
-        if cv2.waitKey(1) & 0xFF == ord(' '):
-            break
+        # update the gui
+        app.processEvents()
 
 # Release capture
 cap.release()
