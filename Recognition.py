@@ -1,6 +1,10 @@
 import cv2
 from deepface import DeepFace as dp
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
 def extract_face(frame, relative_bounding_box):
     #extracting face from the bound box detected by MP
     frame_height, frame_width,_ = frame.shape
@@ -25,10 +29,10 @@ def extract_face(frame, relative_bounding_box):
 def embed_face(face_image):
     embeddings = dp.represent(face_image, model_name = "Facenet", enforce_detection = False)
     if not embeddings:
-        print ("embed_face: no face detected")
+        logger.warning("embed_face: no face detected")
         return None
     else:
-        print ("embed face: face detected, embedding extracted")
+        logger.info("embed_face: face detected, embedding extracted")
         embedding = embeddings[0]["embedding"]
         return embedding
 
@@ -44,20 +48,19 @@ def cosine_similarity (embedding1, embedding2):
 
 def compare_embeddings(embedding1, embedding2):
     if embedding1 is None or embedding2 is None:
-        print(float('inf'))# Or some other indicator of no face/embedding
+        logger.warning("compare_embeddings: one of the embeddings is None")
         return False
     similarity = cosine_similarity(embedding1, embedding2)
     distance = 1 - similarity
-    print(f"Cosine similarity: {similarity:.4f}")
-    print(f"Cosine distance: {distance:.4f}")
+    logger.info(f"Cosine similarity: {similarity:.4f}")
+    logger.info(f"Cosine distance: {distance:.4f}")
 
     # Using cosine distance
     if similarity > 0.6:
-
-        print ("Recognised")
+        logger.info( "compare_embeddings: embeddings match")
         return True
     else:
-        print ("Not Recognised")
+        logger.info( "compare_embeddings: embeddings do not match")
         return False
 
 
@@ -65,5 +68,5 @@ def visualization_wrapper (frame, relative_bounding_box, img_test, saved_cropped
     cropped_face, x_center, y_center = extract_face(frame, relative_bounding_box)
 
     if cropped_face is None or cropped_face.shape[0] < 100 or cropped_face.shape[1] < 100:
-        print ("Cropped face too small of invalid")
+        logger.warning("visualization_wrapper: cropped face is None or too small")
         return

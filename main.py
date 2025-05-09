@@ -14,6 +14,10 @@ from Recognition import compare_embeddings
 
 from db import Session, Student, Embed, get_student_by_id
 
+from logger import setup_logger
+
+setup_logger()
+
 embedded_db = {}
 
 with Session() as session:
@@ -55,7 +59,7 @@ with mp_face_detection.FaceDetection(
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
-            print("Error: Cannot read camera input.")
+            logger.error("Error: Cannot read camera input.")
             break
 
         if frame_count % (frame_skip + 1) == 0:
