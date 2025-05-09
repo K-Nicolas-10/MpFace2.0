@@ -67,20 +67,3 @@ def visualization_wrapper (frame, relative_bounding_box, img_test, saved_cropped
     if cropped_face is None or cropped_face.shape[0] < 100 or cropped_face.shape[1] < 100:
         print ("Cropped face too small of invalid")
         return
-
-    if saved_cropped:
-        cv2.imwrite("last_cropped.png", cropped_face)
-
-    identify_person(frame,cropped_face, img_test, 2, x_center, y_center, "victors")
-
-def identify_person(frame, face_live, face_db, nrof_person, x_center, y_center, name):
-    face_live_embedding = embed_face(face_live)
-    face_db_embedding = embed_face(face_db)
-
-    for i in range(nrof_person):
-        if compare_embeddings(face_live_embedding, face_db_embedding):
-            # Write name at (x_center, y_center)
-            cv2.putText(frame, name, (int(x_center), int(y_center)),
-                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                        fontScale=1, color=(0, 255, 0), thickness=2)
-            return
