@@ -7,23 +7,21 @@ from pathlib import Path
 from gui import AppGui
 from PyQt5.QtWidgets import QApplication
 import sys
+import numpy as np
 
 from Recognition import compare_embeddings
 
-folder_path_str = 'Students'
-folder = Path(folder_path_str)
+from db import Session, Student, Embed, get_student_by_id
 
-#Creating dictionary for Name:Embedding
-#Every photo in the folder must contain the student's name in the name of the file
-#Must be PNG or JPG as to not complicate our existence
-embedded_db = []
-if folder.is_dir():
-    for item in folder.iterdir():
-        temp = cv2.imread(str(item))
-        embedded_db.append({
-            # slicing the .png extension and only assigning the name
-            f"{item.name[:-4]}" : Recognition.embed_face(temp)
-        })
+embedded_db = {}
+
+with Session() as session:
+    students = session.query(Student).all()
+    for student in students:
+        embedded_db[student.name] = [
+            np.frombuffer(embed.embedding, dtype=np.float32)
+            for embed in student.embeds
+        ]
 
 # Initialize MediaPipe Face Detection
 mp_face_detection = mp.solutions.face_detection
@@ -81,10 +79,41 @@ with mp_face_detection.FaceDetection(
                         extracted_face = face_recognition.extract_face(frame, relative_bbox)
                         live_embedding = face_recognition.embed_face(extracted_face)
                         if live_embedding is not None:
-                            for student in embedded_db:
-                                for db_name, db_embedding in student.items():
+                            recognized = False
+                            # for student in embedded_db:
+                            #     for db_name, db_embedding in student.items():
+                            #         if face_recognition.compare_embeddings(live_embedding, db_embedding):
+                            #             face_tracker.update_face_name_by_id(face_id, db_name)
+                            for db_name, db_embeddings in embedded_db.items():
+                                for db_embedding in db_embeddings:
                                     if face_recognition.compare_embeddings(live_embedding, db_embedding):
                                         face_tracker.update_face_name_by_id(face_id, db_name)
+                                        recognized = True
+                                        app_gui.add_student(db_name)
+                                        break
+                            if not recognized:
+                                res = app_gui.prompt_for_info(cv2.cvtColor(extracted_face, cv2.COLOR_BGR2RGB))
+                                if res:
+                                    if res["new"]:
+                                        with Session() as session:
+                                            new_student = Student(name=res["name"], group=res["group"])
+                                            embed = Embed(student=new_student, embedding=np.array(live_embedding, dtype=np.float32).tobytes())
+                                            session.add(new_student)
+                                            session.add(embed)
+                                            session.commit()
+                                            embedded_db[res["name"]] = [live_embedding]
+                                            face_tracker.update_face_name_by_id(face_id, res["name"])
+                                            app_gui.add_student(new_student.name)
+                                    else:
+                                        with Session() as session:
+                                            student = res["student"]
+                                            if student not in embedded_db:
+                                                embed = Embed(student=student, embedding=np.array(live_embedding, dtype=np.float32).tobytes())
+                                                session.add(embed)
+                                                session.commit()
+                                                embedded_db[student.name].append(live_embedding)
+                                                face_tracker.update_face_name_by_id(face_id, res["student"])
+                                                app_gui.add_student(student.name)
 
 
             face_tracker.draw_annotations(frame)
