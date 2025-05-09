@@ -26,10 +26,13 @@ embedded_db = {}
 with Session() as session:
     students = session.query(Student).all()
     for student in students:
-        embedded_db[student.name] = [
-            np.frombuffer(embed.embedding, dtype=np.float32)
-            for embed in student.embeds
-        ]
+        embedded_db[student.name] = {
+            "group": student.group,
+            "embeddings": [
+                np.frombuffer(embed.embedding, dtype=np.float32)
+                for embed in student.embeds
+            ]
+        }
 
 # Initialize MediaPipe Face Detection
 mp_face_detection = mp.solutions.face_detection
@@ -92,12 +95,12 @@ with mp_face_detection.FaceDetection(
                         live_embedding = face_recognition.embed_face(extracted_face)
                         if live_embedding is not None:
                             recognized = False
-                            for db_name, db_embeddings in embedded_db.items():
-                                for db_embedding in db_embeddings:
+                            for db_name, db_data in embedded_db.items():
+                                for db_embedding in db_data["embeddings"]:
                                     if face_recognition.compare_embeddings(live_embedding, db_embedding):
                                         face_tracker.update_face_name_by_id(face_id, db_name)
                                         recognized = True
-                                        app_gui.add_student(db_name)
+                                        app_gui.add_student(db_name, db_data["group"])
                                         break
                             if not recognized:
                                 res = app_gui.prompt_for_info(cv2.cvtColor(extracted_face, cv2.COLOR_BGR2RGB))
@@ -111,7 +114,7 @@ with mp_face_detection.FaceDetection(
                                             session.commit()
                                             embedded_db[res["name"]] = [live_embedding]
                                             face_tracker.update_face_name_by_id(face_id, res["name"])
-                                            app_gui.add_student(new_student.name)
+                                            app_gui.add_student(new_student.name, new_student.group)
                                     else:
                                         with Session() as session:
                                             student = res["student"]
@@ -121,7 +124,7 @@ with mp_face_detection.FaceDetection(
                                                 session.commit()
                                                 embedded_db[student.name].append(live_embedding)
                                                 face_tracker.update_face_name_by_id(face_id, student.name)
-                                                app_gui.add_student(student.name)
+                                                app_gui.add_student(student.name, student.group)
 
 
             face_tracker.draw_annotations(frame)

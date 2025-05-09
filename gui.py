@@ -155,9 +155,9 @@ class AppGui(QWidget):
             return dialog.get_selection()
         return None
 
-    def add_student(self, name):
+    def add_student(self, name, group):
         if name not in self.students:
-            self.students.add(name)
+            self.students.add((name, group))
             self.student_list.addItem(name)
     
     def print_students(self):
@@ -167,8 +167,8 @@ class AppGui(QWidget):
             text = f"Generated attendance report for {self.subject_name} (Group: {self.group})\n"
             text += f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
             text += "\n------------------ Recognized students: ------------------\n"
-            for idx, name in enumerate(self.students, start=1):
-                text += f"{idx}. {name}\n"
+            for idx, (name, group) in enumerate(self.students, start=1):
+                text += f"{idx}. {name} ({group})\n"
             from PyQt5.QtGui import QTextDocument
             doc = QTextDocument()
             doc.setPlainText(text)
