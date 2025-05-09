@@ -119,7 +119,7 @@ class AppGui(QWidget):
 
         self.video_label = QLabel()
         self.video_label.setAlignment(Qt.AlignCenter)
-        self.video_label.setMinimumSize(640, 480)
+        self.video_label.setMinimumSize(960, 720)
         splitter.addWidget(self.video_label)
 
         self.student_list = QListWidget()
@@ -136,7 +136,7 @@ class AppGui(QWidget):
         self.setLayout(main_layout)
 
         self.setLayout(main_layout)
-        self.resize(800, 600)
+        self.resize(1400, 800)
     
     def update_frame(self, frame):
         h, w, ch = frame.shape
@@ -164,11 +164,11 @@ class AppGui(QWidget):
         printer = QPrinter()
         dialog = QPrintDialog(printer, self)
         if dialog.exec_() == QPrintDialog.Accepted:
-            text = f"Generated report for {self.subject_name} (Group: {self.group})\n"
+            text = f"Generated attendance report for {self.subject_name} (Group: {self.group})\n"
             text += f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            text += "---- Recognized students: ----\n"
-            for name in self.students:
-                text += f"{name}\n"
+            text += "\n------------------ Recognized students: ------------------\n"
+            for idx, name in enumerate(self.students, start=1):
+                text += f"{idx}. {name}\n"
             from PyQt5.QtGui import QTextDocument
             doc = QTextDocument()
             doc.setPlainText(text)
