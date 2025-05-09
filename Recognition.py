@@ -47,12 +47,12 @@ def compare_embeddings(embedding1, embedding2):
         print(float('inf'))# Or some other indicator of no face/embedding
         return False
     similarity = cosine_similarity(embedding1, embedding2)
-    distance = (1 - cosine_similarity(embedding1, embedding2))
+    distance = 1 - similarity
     print(f"Cosine similarity: {similarity:.4f}")
     print(f"Cosine distance: {distance:.4f}")
 
     # Using cosine distance
-    if cosine_similarity(embedding1, embedding2) > 0.6:
+    if similarity > 0.6:
 
         print ("Recognised")
         return True
