@@ -1,8 +1,6 @@
 import cv2
 from deepface import DeepFace as dp
 import numpy as np
-
-
 def extract_face(frame, relative_bounding_box):
     #extracting face from the bound box detected by MP
     frame_height, frame_width,_ = frame.shape
@@ -22,7 +20,7 @@ def extract_face(frame, relative_bounding_box):
     bbox = relative_bounding_box
     y_center = bbox.ymin + bbox.height / 2
     x_center = bbox.xmin + bbox.width / 2
-    return face_resized, x_center, y_center
+    return face_resized
 
 def embed_face(face_image):
     embeddings = dp.represent(face_image, model_name = "Facenet", enforce_detection = False)
@@ -54,7 +52,7 @@ def compare_embeddings(embedding1, embedding2):
     print(f"Cosine distance: {distance:.4f}")
 
     # Using cosine distance
-    if cosine_similarity(embedding1, embedding2) > 0.4:
+    if cosine_similarity(embedding1, embedding2) > 0.6:
 
         print ("Recognised")
         return True
