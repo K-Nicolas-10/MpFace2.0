@@ -8,6 +8,7 @@ from gui import AppGui
 from PyQt5.QtWidgets import QApplication
 import sys
 import numpy as np
+from PyQt5.QtCore import Qt
 
 from Recognition import compare_embeddings
 
@@ -41,6 +42,10 @@ face_recognition = Recognition
 
 # initializing gui
 app = QApplication(sys.argv)
+app.setStyle('Fusion')
+app.setAttribute(Qt.AA_EnableHighDpiScaling)
+app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+app.setStyleSheet("QMainWindow {background-color: #2E2E2E;}")
 app_gui = AppGui()
 app_gui.show()
 
