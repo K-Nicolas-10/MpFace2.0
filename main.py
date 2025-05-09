@@ -80,10 +80,6 @@ with mp_face_detection.FaceDetection(
                         live_embedding = face_recognition.embed_face(extracted_face)
                         if live_embedding is not None:
                             recognized = False
-                            # for student in embedded_db:
-                            #     for db_name, db_embedding in student.items():
-                            #         if face_recognition.compare_embeddings(live_embedding, db_embedding):
-                            #             face_tracker.update_face_name_by_id(face_id, db_name)
                             for db_name, db_embeddings in embedded_db.items():
                                 for db_embedding in db_embeddings:
                                     if face_recognition.compare_embeddings(live_embedding, db_embedding):
@@ -112,7 +108,7 @@ with mp_face_detection.FaceDetection(
                                                 session.add(embed)
                                                 session.commit()
                                                 embedded_db[student.name].append(live_embedding)
-                                                face_tracker.update_face_name_by_id(face_id, res["student"].name)
+                                                face_tracker.update_face_name_by_id(face_id, student.name)
                                                 app_gui.add_student(student.name)
 
 

@@ -96,7 +96,7 @@ class InfoDialog(QDialog):
 class AppGui(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Face Detect") # @TODO: add as param
+        self.setWindowTitle("Attendance List System")
         self.subject_name = ""
         self.group = ""
         self.prompt_for_subject_and_group()
