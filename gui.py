@@ -9,7 +9,7 @@ from db import Session, get_all_students
 import time
 
 
-class PromtDialog(QDialog):
+class PromptDialog(QDialog):
     def __init__(self, frame=None):
         super().__init__()
         self.setWindowTitle("Recognize Student")
@@ -29,8 +29,8 @@ class PromtDialog(QDialog):
         self.form_layout = QFormLayout()
         self.name_input = QLineEdit(self)
         self.group_input = QLineEdit(self)
-        self.form_layout.addRow("name:", self.name_input)
-        self.form_layout.addRow("group:", self.group_input)
+        self.form_layout.addRow("Name:", self.name_input)
+        self.form_layout.addRow("Group:", self.group_input)
         self.layout.addLayout(self.form_layout)
 
         if frame is not None:
@@ -96,7 +96,7 @@ class InfoDialog(QDialog):
 class AppGui(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Attendance List System")
+        self.setWindowTitle("Face Recognition Attendance")
         self.subject_name = ""
         self.group = ""
         self.prompt_for_subject_and_group()
@@ -150,7 +150,7 @@ class AppGui(QWidget):
         ))
     
     def prompt_for_info(self, frame):
-        dialog = PromtDialog(frame)
+        dialog = PromptDialog(frame)
         if dialog.exec_() == QDialog.Accepted:
             return dialog.get_selection()
         return None
