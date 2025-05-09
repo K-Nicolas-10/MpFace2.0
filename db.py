@@ -1,7 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, LargeBinary
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
-from Recognition import embed_face
-import cv2
 
 Base = declarative_base()   
 
