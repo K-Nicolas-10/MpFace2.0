@@ -156,7 +156,7 @@ class AppGui(QWidget):
         return None
 
     def add_student(self, name, group):
-        if name not in self.students:
+        if (name, group) not in self.students:
             self.students.add((name, group))
             self.student_list.addItem(name)
     
