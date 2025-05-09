@@ -75,7 +75,7 @@ class FaceAnnotation:
     def set_recognized_name(self, recognized_name):
         self.name = recognized_name
         if self.name:
-            self.text_to_display = f"Name: {self.name}"
+            self.text_to_display = f"{self.name}"
         else:
             self.text_to_display = f"ID: {self.id}"
 
