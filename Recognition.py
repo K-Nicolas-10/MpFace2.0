@@ -70,3 +70,59 @@ def visualization_wrapper (frame, relative_bounding_box, img_test, saved_cropped
     if cropped_face is None or cropped_face.shape[0] < 100 or cropped_face.shape[1] < 100:
         logger.warning("visualization_wrapper: cropped face is None or too small")
         return
+
+def get_distance(embedding1, embedding2):
+    if embedding1 is None or embedding2 is None:
+        logger.warning("get_distance: one of the embeddings is None")
+        return float('inf')
+    distance = 1 - cosine_similarity(embedding1, embedding2)
+    logger.info(f"get_distance: Cosine distance: {distance:.4f}")
+    return distance
+
+def detect_and_extract_face_from_image(full_image, detector_backend='mtcnn', target_size=(224, 224)):
+    if full_image is None:
+        logger.warning("detect_and_extract_face_from_image: full_image is None")
+        return None
+    try:
+        extracted_res = dp.extract_faces(
+            img_path=full_image,
+            detector_backend=detector_backend,
+            enforce_detection=False,
+            align=True,
+        )
+
+        print("extracted_res: ", extracted_res)
+
+        high_confidence_faces = [
+            face_data for face_data in extracted_res
+            if face_data['confidence'] >= 0.8
+        ]
+
+        if len(high_confidence_faces) == 0:
+            logger.warning("detect_and_extract_face_from_image: no face detected")
+            return None
+        elif len(high_confidence_faces) > 1:
+            # @TODO: We could try to get the largest face (?)
+            logger.warning("detect_and_extract_face_from_image: more than one face detected")
+            return None
+        else:
+            logger.info("detect_and_extract_face_from_image: one face detected")
+            face_data = high_confidence_faces[0]
+            face_img_raw = face_data["face"]
+
+            if face_img_raw.dtype == np.float32 or face_img_raw.dtype == np.float64:
+                 face_img_bgr = cv2.cvtColor((face_img_raw * 255).astype(np.uint8), cv2.COLOR_RGB2BGR)
+            elif len(face_img_raw.shape) == 3 and face_img_raw.shape[2] == 3:
+                 face_img_bgr = cv2.cvtColor(face_img_raw, cv2.COLOR_RGB2BGR)
+            else:
+                 face_img_bgr = face_img_raw
+            
+            if target_size:
+                face_img_resized = cv2.resize(face_img_bgr, target_size, interpolation=cv2.INTER_AREA)
+                return face_img_resized
+            else:
+                return face_img_bgr
+    except Exception as e:
+        logger.error(f"detect_and_extract_face_from_image: error in face detection: {e}")
+        return None
+

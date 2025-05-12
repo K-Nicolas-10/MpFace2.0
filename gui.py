@@ -10,13 +10,21 @@ import time
 import cv2
 from embedded_db import EmbeddedDb
 
-EmbeddedDb = EmbeddedDb()
-
 class RegistrationWindow(QDialog):
     def __init__(self, camera_index=0, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Manual Registration")
         self.layout = QVBoxLayout(self)
+
+        self.student_combo = QComboBox(self)
+        self.student_combo.addItem("Add new student")
+        with Session() as session:
+            self.students = get_all_students(session)
+            for student in self.students:
+                self.student_combo.addItem(f"{student.name} ({student.group})")
+        self.student_combo.currentIndexChanged.connect(self.on_student_selected)
+        self.layout.addWidget(QLabel("Select existing or add new:"))
+        self.layout.addWidget(self.student_combo)
 
         self.name_input = QLineEdit(self)
         self.group_input = QLineEdit(self)
@@ -42,6 +50,13 @@ class RegistrationWindow(QDialog):
 
         self.captured_image = None
         self.camera_index = camera_index
+
+        self.on_student_selected(0)
+
+    def on_student_selected(self, idx):
+        is_new = (idx == 0)
+        self.name_input.setEnabled(is_new)
+        self.group_input.setEnabled(is_new)
 
     def capture_photo(self):
         cap = cv2.VideoCapture(self.camera_index)
@@ -73,22 +88,42 @@ class RegistrationWindow(QDialog):
 
 
     def save_student(self):
-        name = self.name_input.text().strip()
-        group = self.group_input.text().strip()
-        if not name or not group or self.captured_image is None:
-            QMessageBox.warning(self, "Error", "Please fill all fields and capture a photo.")
+        idx = self.student_combo.currentIndex()
+        if idx == 0:
+            name = self.name_input.text().strip()
+            group = self.group_input.text().strip()
+            if not name or not group or self.captured_image is None:
+                QMessageBox.warning(self, "Error", "Please fill all fields and capture a photo.")
+                return
+        else:
+            student = self.students[idx-1]
+            name = student.name
+            group = student.group
+            if self.captured_image is None:
+                QMessageBox.warning(self, "Error", "Please capture a photo.")
+                return
+            
+        from Recognition import embed_face, detect_and_extract_face_from_image
+        
+        extracted_face = detect_and_extract_face_from_image(self.captured_image)
+        if extracted_face is None:
+            QMessageBox.warning(self, "Error", "No face detected in the captured photo.")
             return
-        from Recognition import embed_face
-        embedding = embed_face(self.captured_image)
+        embedding = embed_face(extracted_face)
+
         if embedding is None:
             QMessageBox.warning(self, "Error", "No face detected in the captured photo.")
             return
         from db import Session, Student, Embed
         import numpy as np
         with Session() as session:
-            student = Student(name=name, group=group)
+            if idx == 0:
+                student = Student(name=name, group=group)
+                session.add(student)
+                session.flush()
+            else:
+                student = session.query(Student).filter_by(id=self.students[idx-1].id).first()
             embed = Embed(student=student, embedding=np.array(embedding, dtype=np.float32).tobytes())
-            session.add(student)
             session.add(embed)
             session.commit()
             EmbeddedDb.add_to_embedded_db(name, group, embedding)

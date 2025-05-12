@@ -20,7 +20,7 @@ setup_logger()
 
 logger = logging.getLogger(__name__)
 
-EmbeddedDb = EmbeddedDb()
+EmbeddedDb.populate_db()
 embedded_db = EmbeddedDb.get()
 
 
@@ -84,14 +84,27 @@ with mp_face_detection.FaceDetection(
                         extracted_face = face_recognition.extract_face(frame, relative_bbox)
                         live_embedding = face_recognition.embed_face(extracted_face)
                         if live_embedding is not None:
-                            recognized = False
+                            best_match_name = None
+                            best_match_group = None
+                            best_match_distance = float('inf')
                             for db_name, db_data in embedded_db.items():
                                 for db_embedding in db_data["embeddings"]:
-                                    if face_recognition.compare_embeddings(live_embedding, db_embedding):
-                                        face_tracker.update_face_name_by_id(face_id, db_name)
-                                        recognized = True
-                                        app_gui.add_student(db_name, db_data["group"])
-                                        break
+                                    distance = face_recognition.get_distance(live_embedding, db_embedding)
+
+                                    if distance < best_match_distance:
+                                        best_match_distance = distance
+                                        best_match_name = db_name
+                                        best_match_group = db_data["group"]
+                                    # if face_recognition.compare_embeddings(live_embedding, db_embedding):
+                                    #     face_tracker.update_face_name_by_id(face_id, db_name)
+                                    #     recognized = True
+                                    #     app_gui.add_student(db_name, db_data["group"])
+                                    #     break
+                            recognized = False
+                            if best_match_name is not None and best_match_distance < 0.6:
+                                face_tracker.update_face_name_by_id(face_id, best_match_name)
+                                recognized = True
+                                app_gui.add_student(best_match_name, best_match_group)
                             if not recognized and app_gui.is_live_registration_enabled():
                                 res = app_gui.prompt_for_info(cv2.cvtColor(extracted_face, cv2.COLOR_BGR2RGB))
                                 if res:
